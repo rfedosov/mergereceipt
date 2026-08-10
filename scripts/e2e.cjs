@@ -14,6 +14,8 @@ const { basename, dirname, join, resolve } = require("node:path");
 const Ajv2020 = require("ajv/dist/2020");
 const addFormats = require("ajv-formats");
 
+const { parseSingleNpmPackArtifact } = require("./npm-pack-output.cjs");
+
 const projectRoot = resolve(__dirname, "..");
 const fixtureRoot = mkdtempSync(join(tmpdir(), "mergereceipt-e2e-"));
 const packageDirectory = join(fixtureRoot, "package");
@@ -96,10 +98,8 @@ try {
         `${packResult.stdout}\n${packResult.stderr}`
     );
   }
-  const packOutput = packResult.stdout;
-  const packed = JSON.parse(packOutput);
-  assert(Array.isArray(packed) && packed.length === 1, "npm pack returned one artifact");
-  const filename = packed[0]?.filename;
+  const artifact = parseSingleNpmPackArtifact(packResult.stdout);
+  const filename = artifact.filename;
   assert(typeof filename === "string", "npm pack returned an artifact filename");
   const tarball = join(packageDirectory, filename);
 

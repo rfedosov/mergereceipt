@@ -5,6 +5,8 @@ const { mkdtempSync, rmSync } = require("node:fs");
 const { tmpdir } = require("node:os");
 const { basename, join, resolve } = require("node:path");
 
+const { parseSingleNpmPackArtifact } = require("./npm-pack-output.cjs");
+
 const projectRoot = resolve(__dirname, "..");
 const npmExecutable = process.platform === "win32" ? "npm.cmd" : "npm";
 const cacheDirectory = mkdtempSync(join(tmpdir(), "mergereceipt-pack-check-"));
@@ -29,10 +31,7 @@ try {
     throw new Error(`npm pack --dry-run failed\n${result.stderr ?? ""}`);
   }
 
-  const output = JSON.parse(result.stdout ?? "[]");
-  assert(Array.isArray(output) && output.length === 1, "expected one npm artifact");
-  const artifact = output[0];
-  assert(isRecord(artifact), "npm returned artifact metadata");
+  const artifact = parseSingleNpmPackArtifact(result.stdout ?? "");
   const entries = artifact.files;
   assert(Array.isArray(entries), "npm returned a package file list");
 

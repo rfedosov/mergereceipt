@@ -11,6 +11,8 @@ const {
 const { tmpdir } = require("node:os");
 const { basename, join, resolve } = require("node:path");
 
+const { parseSingleNpmPackArtifact } = require("./npm-pack-output.cjs");
+
 const projectRoot = resolve(__dirname, "..");
 const packageJson = JSON.parse(
   readFileSync(join(projectRoot, "package.json"), "utf8")
@@ -49,9 +51,8 @@ if (result.error) throw result.error;
 if (result.status !== 0) {
   throw new Error(`npm pack failed\n${result.stderr ?? ""}`);
 }
-const packed = JSON.parse(result.stdout ?? "[]");
-assert(Array.isArray(packed) && packed.length === 1, "npm returned one artifact");
-const filename = packed[0]?.filename;
+const artifact = parseSingleNpmPackArtifact(result.stdout ?? "");
+const filename = artifact.filename;
 assert(typeof filename === "string", "npm returned an artifact filename");
 const tarball = join(artifactDirectory, filename);
 const contents = readFileSync(tarball);
