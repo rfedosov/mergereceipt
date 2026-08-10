@@ -63,9 +63,7 @@ describe("command execution", () => {
 });
 
 function successCommand(): string {
-  return process.platform === "win32"
-    ? "echo 147 passed & echo note 1>&2"
-    : "printf '147 passed\\n'; printf 'note\\n' >&2";
+  return `"${process.execPath}" -e "process.stdout.write('147 passed\\n'); process.stderr.write('note\\n')"`;
 }
 
 function failureCommand(): string {
