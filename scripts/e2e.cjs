@@ -10,7 +10,7 @@ const {
   writeFileSync
 } = require("node:fs");
 const { tmpdir } = require("node:os");
-const { basename, join, resolve } = require("node:path");
+const { basename, dirname, join, resolve } = require("node:path");
 const Ajv2020 = require("ajv/dist/2020");
 const addFormats = require("ajv-formats");
 
@@ -18,8 +18,9 @@ const projectRoot = resolve(__dirname, "..");
 const fixtureRoot = mkdtempSync(join(tmpdir(), "mergereceipt-e2e-"));
 const packageDirectory = join(fixtureRoot, "package");
 const repository = join(fixtureRoot, "repository");
-const npmExecutable = process.platform === "win32" ? "npm.cmd" : "npm";
-const npxExecutable = process.platform === "win32" ? "npx.cmd" : "npx";
+const npmCliPath = process.env.npm_execpath;
+const npxCliPath =
+  typeof npmCliPath === "string" ? join(dirname(npmCliPath), "npx-cli.js") : "";
 const npmEnvironment = {
   ...process.env,
   npm_config_cache: join(fixtureRoot, "npm-cache")
@@ -28,10 +29,15 @@ delete npmEnvironment.npm_config_package;
 delete npmEnvironment.npm_config_call;
 
 try {
+  assert(
+    typeof npmCliPath === "string" && existsSync(npmCliPath),
+    "npm CLI path is available"
+  );
+  assert(existsSync(npxCliPath), "npx CLI path is available");
   mkdirSync(packageDirectory, { recursive: true });
   mkdirSync(join(repository, "src", "auth"), { recursive: true });
   mkdirSync(join(repository, "test"), { recursive: true });
-  run(npmExecutable, ["init", "--yes"], repository, npmEnvironment);
+  run(process.execPath, [npmCliPath, "init", "--yes"], repository, npmEnvironment);
   writeFileSync(
     join(repository, "package.json"),
     JSON.stringify(
@@ -72,8 +78,9 @@ try {
   commit(repository, "initial fixture");
 
   const packResult = runAllowFailure(
-    npmExecutable,
+    process.execPath,
     [
+      npmCliPath,
       "pack",
       "--ignore-scripts",
       "--json",
@@ -97,8 +104,16 @@ try {
   const tarball = join(packageDirectory, filename);
 
   run(
-    npmExecutable,
-    ["install", "--ignore-scripts", "--no-audit", "--no-fund", "--save-dev", tarball],
+    process.execPath,
+    [
+      npmCliPath,
+      "install",
+      "--ignore-scripts",
+      "--no-audit",
+      "--no-fund",
+      "--save-dev",
+      tarball
+    ],
     repository,
     npmEnvironment
   );
@@ -127,16 +142,16 @@ try {
   assert(!existsSync(join(installedPackage, "dist", "action")), "Action bundle excluded from npm");
   assert(
     run(
-      npxExecutable,
-      ["--offline", "--", "mergereceipt", "--version"],
+      process.execPath,
+      [npxCliPath, "--offline", "--", "mergereceipt", "--version"],
       repository,
       npmEnvironment
     ).trim() === "0.1.0",
     "local npx binary resolution"
   );
   run(
-    npxExecutable,
-    ["--offline", "--", "mergereceipt", "init"],
+    process.execPath,
+    [npxCliPath, "--offline", "--", "mergereceipt", "init"],
     repository,
     npmEnvironment
   );
