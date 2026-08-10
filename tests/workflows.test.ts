@@ -7,6 +7,13 @@ import { describe, expect, it } from "vitest";
 const workflowNames = ["ci.yml", "codeql.yml", "release.yml"] as const;
 
 describe("GitHub workflow hardening", () => {
+  it("uses the supported Node.js runtime for the bundled Action", () => {
+    const action = readFileSync(join(process.cwd(), "action.yml"), "utf8");
+
+    expect(action).toContain("using: node24");
+    expect(action).not.toContain("using: node20");
+  });
+
   it("keeps every workflow valid YAML and every external Action SHA-pinned", () => {
     for (const name of workflowNames) {
       const contents = workflow(name);
