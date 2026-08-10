@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Verify, publish npm package, and create GitHub release
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: npm
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      CI: "true"
+    steps:
+      - name: Checkout the immutable tag
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Use Node.js 22
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 22
+          package-manager-cache: false
+      - name: Use an OIDC-capable npm CLI
+        run: npm install --global npm@12.0.2
+      - run: npm ci --ignore-scripts
+      - name: Validate tag and release metadata
+        run: npm run release:check
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Verify the committed Action distribution
+        run: git diff --exit-code -- dist
+      - name: Verify npm package allowlist
+        run: npm run package:check
+      - run: npm run test:e2e
+      - name: Re-check generated distribution after E2E
+        run: git diff --exit-code -- dist
+      - name: Create the exact release tarball and checksums
+        id: artifact
+        run: npm run release:artifact
+      - name: Check whether this exact version was bootstrapped manually
+        id: registry
+        env:
+          EXPECTED_INTEGRITY: ${{ steps.artifact.outputs.integrity }}
+        run: npm run release:registry-check
+      - name: Publish to npm with trusted publishing and provenance
+        if: steps.registry.outputs.published != 'true'
+        run: npm publish "${{ steps.artifact.outputs.tarball }}" --access public --provenance
+      - name: Create or complete the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TARBALL: ${{ steps.artifact.outputs.tarball }}
+          RELEASE_CHECKSUM: ${{ steps.artifact.outputs.checksum }}
+          RELEASE_METADATA: ${{ steps.artifact.outputs.metadata }}
+        run: |
+          state="$(gh release view "$GITHUB_REF_NAME" --json isDraft --jq .isDraft 2>/dev/null || echo missing)"
+          if [ "$state" = "missing" ]; then
+            gh release create "$GITHUB_REF_NAME" "$RELEASE_TARBALL" "$RELEASE_CHECKSUM" "$RELEASE_METADATA" --draft --verify-tag --title "MergeReceipt $GITHUB_REF_NAME" --generate-notes
+          elif [ "$state" = "true" ]; then
+            gh release upload "$GITHUB_REF_NAME" "$RELEASE_TARBALL" "$RELEASE_CHECKSUM" "$RELEASE_METADATA" --clobber
+          else
+            echo "GitHub release $GITHUB_REF_NAME is already published."
+            exit 0
+          fi
+          gh release edit "$GITHUB_REF_NAME" --draft=false

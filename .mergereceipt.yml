@@ -1,0 +1,38 @@
+version: 1
+checks:
+  tests:
+    command: npm test
+    required: true
+    timeoutMs: 900000
+  lint:
+    command: npm run lint
+    required: true
+    timeoutMs: 300000
+  typecheck:
+    command: npm run typecheck
+    required: true
+    timeoutMs: 300000
+  build:
+    command: npm run build
+    required: true
+    timeoutMs: 600000
+analysis:
+  requireTestsForChangedCode: true
+  testPatterns:
+    - "**/*.test.*"
+    - "**/*.spec.*"
+    - "tests/**"
+    - "**/tests/**"
+    - "test/**"
+    - "**/test/**"
+    - "**/__tests__/**"
+  sourcePatterns:
+    - "src/**/*.ts"
+  sensitivePatterns:
+    - "src/**/auth/**"
+    - "src/**/*security*.*"
+    - ".github/workflows/**"
+    - "Dockerfile"
+    - "package-lock.json"
+git:
+  includeUncommitted: true

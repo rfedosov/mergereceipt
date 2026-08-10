@@ -1,0 +1,30 @@
+name: MergeReceipt
+description: Collect reproducible pull request verification signals before review or merge.
+author: MergeReceipt contributors
+branding:
+  icon: check-circle
+  color: blue
+inputs:
+  config:
+    description: Path to the MergeReceipt configuration, relative to the repository.
+    required: false
+    default: .mergereceipt.yml
+  base:
+    description: Optional git base revision. Pull request metadata is used by default.
+    required: false
+  working-directory:
+    description: Repository subdirectory in which MergeReceipt should run.
+    required: false
+    default: .
+  fail-on-review:
+    description: Fail the Action with exit code 3 for REVIEW_REQUIRED verdicts.
+    required: false
+    default: "false"
+outputs:
+  score:
+    description: Summary score for collected verification signals, from 0 to 100.
+  verdict:
+    description: PASS, REVIEW_REQUIRED, or FAIL.
+runs:
+  using: node20
+  main: dist/action/index.js

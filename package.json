@@ -1,0 +1,100 @@
+{
+  "name": "mergereceipt",
+  "version": "0.1.0",
+  "description": "Collect reproducible pull request verification signals before review or merge.",
+  "keywords": [
+    "ai",
+    "agent",
+    "codex",
+    "claude",
+    "github-actions",
+    "pull-request",
+    "ci",
+    "verification",
+    "code-review",
+    "developer-tools"
+  ],
+  "author": "MergeReceipt contributors",
+  "license": "MIT",
+  "private": false,
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "mergereceipt": "dist/cli.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/*.js",
+    "dist/*.d.ts",
+    "dist/analysis",
+    "dist/checks",
+    "dist/config",
+    "dist/core",
+    "dist/git",
+    "dist/providers",
+    "dist/reporters",
+    "dist/scoring",
+    "docs/json-output.md",
+    "schemas/report.schema.json",
+    "CHANGELOG.md",
+    "SECURITY.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "clean": "node scripts/clean.cjs",
+    "build": "npm run clean && tsc -p tsconfig.build.json && ncc build dist/github/main.js -o dist/action --minify && node scripts/finalize-build.cjs",
+    "lint": "eslint .",
+    "performance:baseline": "npm run build && node scripts/performance-baseline.cjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:e2e": "npm run build && node scripts/e2e.cjs",
+    "package:check": "node scripts/check-package.cjs",
+    "test:package": "npm run build && npm run package:check",
+    "test:watch": "vitest",
+    "demo": "npm run build && node scripts/demo.cjs",
+    "mergereceipt:dogfood": "node dist/cli.js verify",
+    "release:configure": "node scripts/configure-release.cjs",
+    "release:artifact": "node scripts/create-release-artifact.cjs",
+    "release:check": "node scripts/release-check.cjs",
+    "release:registry-check": "node scripts/check-registry-version.cjs",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "commander": "^14.0.0",
+    "picomatch": "^4.0.3",
+    "yaml": "^2.8.1",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.34.0",
+    "@types/node": "^20.19.11",
+    "@types/picomatch": "^4.0.2",
+    "@vercel/ncc": "^0.38.3",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "eslint": "^9.34.0",
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.41.0",
+    "vitest": "^3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rfedosov/mergereceipt.git"
+  },
+  "homepage": "https://github.com/rfedosov/mergereceipt#readme",
+  "bugs": {
+    "url": "https://github.com/rfedosov/mergereceipt/issues"
+  }
+}
