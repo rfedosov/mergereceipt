@@ -4,6 +4,8 @@ const { spawnSync } = require("node:child_process");
 const { appendFileSync, readFileSync } = require("node:fs");
 const { join, resolve } = require("node:path");
 
+const { parseSingleNpmViewValue } = require("./npm-view-output.cjs");
+
 const projectRoot = resolve(__dirname, "..");
 const packageJson = JSON.parse(
   readFileSync(join(projectRoot, "package.json"), "utf8")
@@ -34,8 +36,7 @@ const result = spawnSync(
 
 let published = false;
 if (result.status === 0) {
-  const registryIntegrity = JSON.parse(result.stdout ?? "null");
-  assert(typeof registryIntegrity === "string", "registry returned integrity");
+  const registryIntegrity = parseSingleNpmViewValue(result.stdout ?? "");
   assert(
     registryIntegrity === expectedIntegrity,
     "the existing npm version has different tarball integrity"
