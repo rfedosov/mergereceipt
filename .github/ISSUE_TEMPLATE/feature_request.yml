@@ -11,10 +11,35 @@ body:
     validations:
       required: true
   - type: textarea
-    id: evidence
+    id: workaround
     attributes:
-      label: Proposed evidence
-      description: What deterministic observation would the feature collect?
+      label: Current workaround
+      description: How do you handle this problem today?
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Proposed behavior
+      description: What should MergeReceipt observe or report?
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Product layer
+      description: Where does this belong, and why?
+      options:
+        - Deterministic core
+        - Optional semantic/provider layer
+        - Unsure
+    validations:
+      required: true
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Layer rationale
+      description: Explain why the proposed behavior is reproducible evidence or secondary semantic judgment.
     validations:
       required: true
   - type: textarea

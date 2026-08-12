@@ -23,11 +23,34 @@ body:
         - Both
     validations:
       required: true
+  - type: input
+    id: node
+    attributes:
+      label: Node.js version
+      description: Output of node --version.
+      placeholder: v20.19.0
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: Ubuntu 24.04, macOS 15, or Windows 11
+    validations:
+      required: true
+  - type: textarea
+    id: config
+    attributes:
+      label: Sanitized configuration
+      description: Paste the relevant .mergereceipt.yml without secrets or private paths.
+      render: yaml
+    validations:
+      required: true
   - type: textarea
     id: reproduction
     attributes:
       label: Minimal reproduction
-      description: Include sanitized config, commands, and repository state.
+      description: List the smallest sequence of commands and repository state that reproduces the problem.
     validations:
       required: true
   - type: textarea
@@ -42,6 +65,11 @@ body:
       label: Actual behavior
     validations:
       required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Add sanitized logs or JSON output only when they help reproduce the problem.
   - type: checkboxes
     id: checks
     attributes:
