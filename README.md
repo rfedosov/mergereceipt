@@ -59,17 +59,32 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: rfedosov/mergereceipt@v0.1.0
+      - name: Set up Node.js 20
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: 20
+          cache: npm
+      - name: Install repository dependencies
+        run: npm ci --ignore-scripts
+      - name: Collect verification evidence
+        uses: rfedosov/mergereceipt@v0.1.0
 ```
 
 The exact release tag is immutable. Full history lets MergeReceipt resolve the
 pull request base; the read-only token and disabled credential persistence keep
 the job at the minimum permission it needs. Do not use `pull_request_target` to
 check out and execute untrusted pull request code.
+
+MergeReceipt runs the commands in `.mergereceipt.yml`; it does **not** install
+the repository's dependencies. The example above is the conservative npm path
+for a committed `package-lock.json`. Replace the dependency/setup step with the
+repository's normal reviewed bootstrap when lifecycle scripts are required or
+when the project uses pnpm, Yarn, Bun, or another toolchain.
 
 ## Why MergeReceipt
 

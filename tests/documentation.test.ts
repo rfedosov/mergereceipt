@@ -85,7 +85,7 @@ describe("repository documentation", () => {
     expect(readme).not.toMatch(/rfedosov\/mergereceipt@v1(?!\.)/u);
   });
 
-  it("puts the real demo, quick start, and secure Action before background detail", () => {
+  it("keeps the README Action sequence copy-paste runnable and read-only", () => {
     const readme = readFileSync(join(process.cwd(), "README.md"), "utf8");
     const actionExample = readme.match(
       /## Add it to a pull request[\s\S]*?```yaml\n(?<workflow>[\s\S]*?)\n```/u
@@ -97,18 +97,45 @@ describe("repository documentation", () => {
     expect(readme.indexOf("## Try it in 60 seconds")).toBeLessThan(
       readme.indexOf("## Why MergeReceipt")
     );
-    expect(readme).toContain("on:\n  pull_request:");
-    expect(readme).toContain("permissions:\n  contents: read");
-    expect(readme).toContain("persist-credentials: false");
-    expect(readme).not.toContain("pull_request_target:");
     expect(readme).not.toContain(
       "becomes valid only after the immutable `v0.1.0` release exists"
     );
     expect(actionExample).toBeDefined();
+    const workflow = actionExample ?? "";
     expect(
-      parseDocument(actionExample ?? "").errors,
+      parseDocument(workflow).errors,
       "README Action example YAML errors"
     ).toEqual([]);
+
+    const checkout =
+      "uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803";
+    const setupNode =
+      "uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38";
+    const install = "run: npm ci --ignore-scripts";
+    const mergeReceipt = "uses: rfedosov/mergereceipt@v0.1.0";
+    const checkoutIndex = workflow.indexOf(checkout);
+    const setupNodeIndex = workflow.indexOf(setupNode);
+    const installIndex = workflow.indexOf(install);
+    const mergeReceiptIndex = workflow.indexOf(mergeReceipt);
+
+    expect(checkoutIndex).toBeGreaterThanOrEqual(0);
+    expect(setupNodeIndex).toBeGreaterThan(checkoutIndex);
+    expect(installIndex).toBeGreaterThan(setupNodeIndex);
+    expect(mergeReceiptIndex).toBeGreaterThan(installIndex);
+
+    const checkoutStep = workflow.slice(checkoutIndex, setupNodeIndex);
+    const setupNodeStep = workflow.slice(setupNodeIndex, installIndex);
+    expect(checkoutStep).toContain("fetch-depth: 0");
+    expect(checkoutStep).toContain("persist-credentials: false");
+    expect(setupNodeStep).toContain("node-version: 20");
+    expect(workflow).toContain("on:\n  pull_request:");
+    expect(workflow).toContain("permissions:\n  contents: read");
+    expect(workflow).not.toContain("pull_request_target:");
+    expect(workflow).not.toMatch(/@main\b/u);
+    expect(workflow).not.toMatch(/\bsecrets\b/u);
+    expect(workflow).not.toMatch(/^\s*[a-z-]+:\s*write\s*$/gmu);
+    expect(workflow).not.toMatch(/^\s*permissions:\s*write-all\s*$/gmu);
+    expect(readme).toContain("it does **not** install");
   });
 
   it("keeps all three demo signals independent and honest", () => {
