@@ -64,6 +64,7 @@
     "test:package": "npm run build && npm run package:check",
     "test:watch": "vitest",
     "demo": "npm run build && node scripts/demo.cjs",
+    "demo:asset": "npm run build && node scripts/render-demo-asset.cjs",
     "mergereceipt:dogfood": "node dist/cli.js verify",
     "release:configure": "node scripts/configure-release.cjs",
     "release:artifact": "node scripts/create-release-artifact.cjs",

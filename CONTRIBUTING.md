@@ -3,6 +3,11 @@
 MergeReceipt welcomes focused bug fixes, documentation improvements, portability
 work, and deterministic evidence collectors.
 
+Before starting, check existing issues and discussions for related work. A good
+first contribution has a narrow user-visible outcome, a reproducible example,
+and tests or documentation that demonstrate it. Comment on an issue before
+investing in a non-trivial change so contributors do not duplicate work.
+
 ## Setup
 
 Node.js 20+ and git are required. CI covers Node 20/22 on Linux, Windows, and
@@ -26,8 +31,13 @@ npm test
 npm run build
 npm run package:check
 npm run test:e2e
+npm run release:check
 node dist/cli.js verify
 ```
+
+Documentation or demo changes should also run `npm run demo`. If the terminal
+asset changes intentionally, regenerate it with `npm run demo:asset` and review
+the rendered SVG.
 
 ## Architecture
 
@@ -73,6 +83,10 @@ Keep changes small enough to review. Describe:
 
 Large provider integrations or hosted services need a design discussion first.
 The core must remain useful with no account, telemetry, network, or AI key.
+
+Feature proposals should explain why a signal belongs in the deterministic core
+or in the optional semantic/provider layer. A heuristic must describe what it
+observes without presenting that observation as proof of correctness.
 
 Report vulnerabilities through the private process in
 [SECURITY.md](SECURITY.md), not a public issue. Participation follows the

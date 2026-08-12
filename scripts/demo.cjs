@@ -56,40 +56,7 @@ try {
   run(process.execPath, [cli, "init"]);
   commit("baseline");
 
-  run("git", ["switch", "--create", "auth-without-test-change"]);
-  write(
-    "src/auth/session.js",
-    [
-      "exports.isAuthenticated = (token) => token.length > 0;",
-      "exports.revoke = (sessions, token) => sessions.filter((item) => item !== token);",
-      ""
-    ].join("\n")
-  );
-  commit("change authentication without test change");
-
-  heading("1. Authentication source changed; test file unchanged");
-  const first = verify("REVIEW_REQUIRED", 80);
-  process.stdout.write(first);
-
-  write(
-    "test/session.test.js",
-    [
-      'const test = require("node:test");',
-      'const assert = require("node:assert/strict");',
-      'const { isAuthenticated, revoke } = require("../src/auth/session");',
-      'test("accepts a token", () => assert.equal(isAuthenticated("token"), true));',
-      'test("revokes one token", () => assert.deepEqual(revoke(["a", "b"], "a"), ["b"]));',
-      ""
-    ].join("\n")
-  );
-  commit("add focused authentication test");
-
-  heading("2. Test added; sensitive authentication review signal remains");
-  const second = verify("REVIEW_REQUIRED", 95);
-  process.stdout.write(second);
-
-  run("git", ["switch", "main"]);
-  run("git", ["switch", "--create", "verified-safe-change"]);
+  run("git", ["switch", "--create", "clean-change"]);
   write("src/math.js", "exports.add = (left, right) => left + right;\n");
   write(
     "test/math.test.js",
@@ -101,11 +68,50 @@ try {
       ""
     ].join("\n")
   );
-  commit("safe source change with test");
+  commit("add source change with focused test");
 
-  heading("3. Non-sensitive source and test changed; all checks pass");
-  const third = verify("PASS", 100);
-  process.stdout.write(third);
+  heading("A. Clean source change with a matching test change");
+  const clean = verify("PASS", 100);
+  process.stdout.write(clean);
+
+  run("git", ["switch", "main"]);
+  run("git", ["switch", "--create", "source-without-test-change"]);
+  write(
+    "src/profile.js",
+    "exports.displayName = (name) => name.trim();\n"
+  );
+  commit("change source without test change");
+
+  heading("B. Source changed; test files unchanged");
+  const missingTestChange = verify("REVIEW_REQUIRED", 85);
+  process.stdout.write(missingTestChange);
+
+  run("git", ["switch", "main"]);
+  run("git", ["switch", "--create", "sensitive-change"]);
+  write(
+    "src/auth/session.js",
+    [
+      "exports.isAuthenticated = (token) => token.length > 0;",
+      "exports.revoke = (sessions, token) => sessions.filter((item) => item !== token);",
+      ""
+    ].join("\n")
+  );
+  write(
+    "test/session.test.js",
+    [
+      'const test = require("node:test");',
+      'const assert = require("node:assert/strict");',
+      'const { isAuthenticated, revoke } = require("../src/auth/session");',
+      'test("accepts a token", () => assert.equal(isAuthenticated("token"), true));',
+      'test("revokes one token", () => assert.deepEqual(revoke(["a", "b"], "a"), ["b"]));',
+      ""
+    ].join("\n")
+  );
+  commit("change authentication with focused test");
+
+  heading("C. Sensitive authentication source and its test changed");
+  const sensitive = verify("REVIEW_REQUIRED", 95);
+  process.stdout.write(sensitive);
   process.stdout.write("\nDemo completed; the temporary repository will be removed.\n");
 } finally {
   if (basename(repository).startsWith("mergereceipt-demo-")) {
