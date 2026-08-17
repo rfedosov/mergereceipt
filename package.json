@@ -82,7 +82,7 @@
     "@eslint/js": "^9.34.0",
     "@types/node": "^20.19.11",
     "@types/picomatch": "^4.0.2",
-    "@vercel/ncc": "^0.38.3",
+    "@vercel/ncc": "^0.45.0",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "eslint": "^9.34.0",
